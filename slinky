@@ -8,10 +8,10 @@ PATHS_SEPARATOR=":"
 usage() {
 	echo "A PC-Android sync tool
 Usage: $0 [-h] [-p PATH] [-P] [i]
-	-h				Show this screen
-	-p PATH				Specify a paths file (default: $PATHS_PATH)
-	-P				Preserve existing files
-	-i				Interactive mode"
+  -h				Show this screen
+  -p PATH			Specify a paths file (default: $PATHS_PATH)
+  -P				Preserve existing files
+  -i				Interactive mode"
 }
 
 # Make sure we have everything we need to run
