@@ -26,6 +26,15 @@ assert_dependencies() {
 	done
 }
 
+# Make sure the Android device is connected
+assert_device_connected() {
+  if [[ -z "$(adb devices -l | tail -n +2)" ]]
+  then
+    echo "Android device not connected"
+    exit 1
+  fi
+}
+
 # Parse arguments passed to us and set relevant variables
 parse_options() {
 	while getopts ":hp:Pi" opt
@@ -161,4 +170,5 @@ parse_options "$@"
 assert_paths_exist
 prepare_paths
 assert_paths
+assert_device_connected
 process_paths
