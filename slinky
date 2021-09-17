@@ -9,7 +9,7 @@ usage() {
 	echo "A PC-Android sync tool
 Usage: $0 [-h] [-p PATH] [-P] [i]
 	-h				Show this screen
-	-p PATH			Specify a paths file (default: $PATHS_PATH)
+	-p PATH				Specify a paths file (default: $PATHS_PATH)
 	-P				Preserve existing files
 	-i				Interactive mode"
 }
