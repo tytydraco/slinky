@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # Constants
-PATHS_PATH=".paths"
+PATHS_PATH="$HOME/.config/slinky/paths"
 PATHS_SEPARATOR=":"
 
 # Display usage for this script
