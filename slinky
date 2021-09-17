@@ -16,7 +16,7 @@ Usage: $0 [-h] [-p PATH] [-P] [i]
 
 # Make sure we have everything we need to run
 assert_dependencies() {
-	for dep in toybox adb awk
+	for dep in adb awk stat
 	do
 		if ! command -v "$dep" &>/dev/null
 		then
@@ -131,8 +131,8 @@ process_paths() {
 			continue
 		fi
 
-		mtime_pc="$(toybox stat -c %Y "$path_pc")"
-		mtime_android="$(adb shell -- toybox stat -c %Y "$path_android")"
+		mtime_pc="$(stat -c %Y "$path_pc")"
+		mtime_android="$(adb shell -- stat -c %Y "$path_android")"
 
 		# Compare last modify times
 		if [[ "$mtime_pc" -gt "$mtime_android" ]]
