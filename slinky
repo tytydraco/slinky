@@ -125,7 +125,7 @@ process_paths() {
 		local mtime_pc
 		local mtime_android
 
-		echo " | $path"
+		echo -e "--- $path"
 
 		path_pc="$(echo "$path" | awk -F "$PATHS_SEPARATOR" '{print $1}')"
 		path_android="$(echo "$path" | awk -F "$PATHS_SEPARATOR" '{print $2}')"
