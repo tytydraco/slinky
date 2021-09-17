@@ -1,0 +1,7 @@
+PATHS=(
+    # Enter sync paths here, PC to Android, respectively
+    # This file is sourced, not executed
+    # 
+    # Example:
+    # /home/user/Download:/sdcard/Download
+)

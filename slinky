@@ -1,0 +1,158 @@
+#!/usr/bin/env bash
+
+# Constants
+PATHS_PATH=".paths"
+PATHS_SEPARATOR=":"
+
+# Display usage for this script
+usage() {
+	echo "A PC-Android sync tool
+Usage: $0 [-h] [-p PATH] [-P] [i]
+	-h				Show this screen
+	-p PATH			Specify a paths file (default: $PATHS_PATH)
+	-P				Preserve existing files
+	-i				Interactive mode"
+}
+
+# Make sure we have everything we need to run
+assert_dependencies() {
+	for dep in toybox adb awk
+	do
+		if ! command -v "$dep" &>/dev/null
+		then
+	  		echo "Dependency $dep inaccessible"
+	  		exit 1
+		fi
+	done
+}
+
+# Parse arguments passed to us and set relevant variables
+parse_options() {
+	while getopts ":hp:Pi" opt
+	do
+		case "$opt" in
+		h)
+			usage
+			exit 0
+			;;
+		p)
+			PATHS_PATH="$OPTARG"
+			;;
+		P)
+			PRESERVE=true
+			;;
+		i)
+			INTERACTIVE=true
+			;;
+		*)
+			usage
+			exit 1
+			;;
+		esac
+	done
+}
+
+# Make sure our paths file exists
+assert_paths_exist() {
+	if [[ ! -f "$PATHS_PATH" ]]
+	then
+		echo "Specified paths file does not exist"
+		exit 1
+	fi
+}
+
+# Source our paths file
+prepare_paths() {
+	# shellcheck source=/dev/null
+	source "$PATHS_PATH"
+}
+
+# Make sure our paths variable was sourced
+assert_paths() {
+	if [[ -z "$PATHS" ]]
+	then
+		echo "Paths file does not valid a PATHS array"
+		exit 1
+	fi
+}
+
+# Return "false" if the user declines to proceed
+manual_confirm() {
+	[[ -z "$INTERACTIVE" ]] && return
+
+	read -r -p "Proceed? [Y/n] " proceed
+	proceed="${proceed,,}"
+
+	[[ "$proceed" == "n" ]] && echo false
+}
+
+# Sync path from PC to Android
+sync_pc_to_android() {
+	local path_pc
+	local path_android
+
+	path_pc="$1"
+	path_android="$2"
+
+	[[ -z "$PRESERVE" ]] && adb shell rm -rf "$path_android"
+	adb push "$path_pc" "$(dirname "$path_android")"
+}
+
+# Sync path from Android to PC
+sync_android_to_pc() {
+	local path_pc
+	local path_android
+
+	path_android="$1"
+	path_pc="$2"
+
+	[[ -z "$PRESERVE" ]] && rm -rf "$path_pc"
+	adb pull "$path_android" "$(dirname "$path_pc")"
+}
+
+# Process all path pairs
+process_paths() {
+	for path in "${PATHS[@]}"
+	do
+		local path_pc
+		local path_android
+		local mtime_pc
+		local mtime_android
+
+		echo " | $path"
+
+		path_pc="$(echo "$path" | awk -F "$PATHS_SEPARATOR" '{print $1}')"
+		path_android="$(echo "$path" | awk -F "$PATHS_SEPARATOR" '{print $2}')"
+
+		# Assert path pair validity
+ 		if [[ -z "$path_pc" ]] || [[ -z "$path_android" ]]
+		then
+			echo "Entry invaid"
+			continue
+		fi
+
+		mtime_pc="$(toybox stat -c %Y "$path_pc")"
+		mtime_android="$(adb shell -- toybox stat -c %Y "$path_android")"
+
+		# Compare last modify times
+		if [[ "$mtime_pc" -gt "$mtime_android" ]]
+		then
+			echo "PC -> Android"
+			[[ "$(manual_confirm)" == "false" ]] && continue
+			sync_pc_to_android "$path_pc" "$path_android"
+		elif [[ "$mtime_android" -gt "$mtime_pc" ]]
+		then
+			echo "Android -> PC"
+			[[ "$(manual_confirm)" == "false" ]] && continue
+			sync_android_to_pc "$path_android" "$path_pc"
+		else
+			echo "Already up-to-date"
+		fi
+	done
+}
+
+parse_options "$@"
+assert_paths_exist
+prepare_paths
+assert_paths
+process_paths
