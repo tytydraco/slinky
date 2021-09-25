@@ -4,6 +4,14 @@
 PATHS_PATH="$HOME/.config/slinky/paths"
 PATHS_SEPARATOR=":"
 
+log() {
+  echo -e "\e[1m\e[93m$*\e[39m\e[0m"
+}
+
+err() {
+  echo -e "\e[1m\e[31m$*\e[39m\e[0m"
+}
+
 # Display usage for this script
 usage() {
 	echo "A PC-Android sync tool
@@ -30,7 +38,7 @@ assert_dependencies() {
 assert_device_connected() {
   if [[ -z "$(adb devices -l | tail -n +2)" ]]
   then
-    echo "Android device not connected"
+    err "Android device not connected"
     exit 1
   fi
 }
@@ -65,7 +73,7 @@ parse_options() {
 assert_paths_exist() {
 	if [[ ! -f "$PATHS_PATH" ]]
 	then
-		echo "Specified paths file does not exist"
+		err "Specified paths file does not exist"
 		exit 1
 	fi
 }
@@ -80,7 +88,7 @@ prepare_paths() {
 assert_paths() {
 	if [[ -z "$PATHS" ]]
 	then
-		echo "Paths file does not valid a PATHS array"
+		err "Paths file does not valid a PATHS array"
 		exit 1
 	fi
 }
@@ -142,7 +150,7 @@ process_paths() {
 		# Assert path pair validity
  		if [[ -z "$path_pc" ]] || [[ -z "$path_android" ]]
 		then
-			echo "Entry invaid"
+			err "Entry invaid"
 			continue
 		fi
 
@@ -152,16 +160,16 @@ process_paths() {
 		# Compare last modify times
 		if [[ "$mtime_pc" -gt "$mtime_android" ]]
 		then
-			echo "PC -> Android"
+			log "PC -> Android"
 			[[ "$(manual_confirm)" == "false" ]] && continue
 			sync_pc_to_android "$path_pc" "$path_android" "$mtime_pc"
 		elif [[ "$mtime_android" -gt "$mtime_pc" ]]
 		then
-			echo "Android -> PC"
+			log "Android -> PC"
 			[[ "$(manual_confirm)" == "false" ]] && continue
 			sync_android_to_pc "$path_android" "$path_pc" "$mtime_android"
 		else
-			echo "Already up-to-date"
+			log "Already up-to-date"
 		fi
 	done
 }
