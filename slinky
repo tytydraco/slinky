@@ -170,5 +170,6 @@ parse_options "$@"
 assert_paths_exist
 prepare_paths
 assert_paths
+adb start-server
 assert_device_connected
 process_paths
