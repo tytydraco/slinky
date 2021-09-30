@@ -24,7 +24,7 @@ Usage: $0 [-h] [-p PATH] [-P] [i]
 
 # Make sure we have everything we need to run
 assert_dependencies() {
-	for dep in adb awk stat find
+	for dep in adb awk stat find sha1sum
 	do
 		if ! command -v "$dep" &>/dev/null
 		then
@@ -139,6 +139,8 @@ process_paths() {
 		local path_android
 		local mtime_pc
 		local mtime_android
+		local sha1_pc
+		local sha1_android
 
 		echo -e "--- $path"
 
@@ -149,6 +151,16 @@ process_paths() {
  		if [[ -z "$path_pc" ]] || [[ -z "$path_android" ]]
 		then
 			err "Entry invaid"
+			continue
+		fi
+
+		# Confirm file contents
+		sha1_pc="$(find "$path_pc" -type f -print0 | sort -z | xargs -0 sha1sum | awk '{print $1}' | sha1sum | awk '{print $1}')"
+		sha1_android="$(adb shell "find $path_android -type f -print0 | sort -z | xargs -0 sha1sum | awk '{print \$1}' | sha1sum | awk '{print \$1}'")"
+
+		if [[ "$sha1_pc" == "$sha1_android" ]]
+		then
+			log "Already up-to-date"
 			continue
 		fi
 
