@@ -24,7 +24,7 @@ Usage: $0 [-h] [-p PATH] [-P] [i]
 
 # Make sure we have everything we need to run
 assert_dependencies() {
-	for dep in adb awk stat
+	for dep in adb awk stat find
 	do
 		if ! command -v "$dep" &>/dev/null
 		then
@@ -115,7 +115,6 @@ sync_pc_to_android() {
 
 	[[ -z "$PRESERVE" ]] && adb shell rm -rf "$path_android"
 	adb push "$path_pc" "$(dirname "$path_android")"
-	adb shell "touch -d @$mtime $path_android"
 }
 
 # Sync path from Android to PC
@@ -130,7 +129,6 @@ sync_android_to_pc() {
 
 	[[ -z "$PRESERVE" ]] && rm -rf "$path_pc"
 	adb pull "$path_android" "$(dirname "$path_pc")"
-	touch -d "@$mtime" "$path_pc"
 }
 
 # Process all path pairs
@@ -154,8 +152,8 @@ process_paths() {
 			continue
 		fi
 
-		mtime_pc="$(stat -c %Y "$path_pc")"
-		mtime_android="$(adb shell -- stat -c %Y "$path_android")"
+		mtime_pc="$(find $path_pc -exec stat -c %Y {} \; | sort -nr | head -n 1)"
+		mtime_android="$(adb shell "find $path_android -exec stat -c %Y {} \; | sort -nr | head -n 1")"
 
 		# Compare last modify times
 		if [[ "$mtime_pc" -gt "$mtime_android" ]]
