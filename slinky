@@ -154,7 +154,7 @@ process_paths() {
 			continue
 		fi
 
-		mtime_pc="$(find $path_pc -exec stat -c %Y {} \; | sort -nr | head -n 1)"
+		mtime_pc="$(find "$path_pc" -exec stat -c %Y {} \; | sort -nr | head -n 1)"
 		mtime_android="$(adb shell "find $path_android -exec stat -c %Y {} \; | sort -nr | head -n 1")"
 
 		# Compare last modify times
