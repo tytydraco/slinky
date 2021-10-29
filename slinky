@@ -15,7 +15,7 @@ err() {
 # Display usage for this script
 usage() {
 	echo "A PC-Android sync tool
-Usage: $0 [-d] [-h] [-p PATH] [-P]
+Usage: $0 [-d] [-h] [-p PATH] [-P] [-1] [-2]
   -d				Demo mode (no changes)
   -h				Show this screen
   -p PATH			Specify a paths file (default: $PATHS_PATH)
