@@ -99,11 +99,9 @@ sync_pc_to_android() {
 
 	local path_pc
 	local path_android
-	local mtime
 
 	path_pc="$1"
 	path_android="$2"
-	mtime="$3"
 
 	[[ -z "$PRESERVE" ]] && adb shell rm -rf "$path_android"
 	adb push "$path_pc" "$(dirname "$path_android")"
@@ -115,11 +113,9 @@ sync_android_to_pc() {
 
 	local path_pc
 	local path_android
-	local mtime
 
 	path_android="$1"
 	path_pc="$2"
-	mtime="$3"
 
 	[[ -z "$PRESERVE" ]] && rm -rf "$path_pc"
 	adb pull "$path_android" "$(dirname "$path_pc")"
@@ -165,11 +161,11 @@ process_paths() {
 		if [[ "$mtime_pc" -gt "$mtime_android" ]]
 		then
 			log "PC -> Android"
-			sync_pc_to_android "$path_pc" "$path_android" "$mtime_pc"
+			sync_pc_to_android "$path_pc" "$path_android"
 		elif [[ "$mtime_android" -gt "$mtime_pc" ]]
 		then
 			log "Android -> PC"
-			sync_android_to_pc "$path_android" "$path_pc" "$mtime_android"
+			sync_android_to_pc "$path_android" "$path_pc"
 		else
 			log "Already up-to-date"
 		fi
