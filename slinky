@@ -15,11 +15,11 @@ err() {
 # Display usage for this script
 usage() {
 	echo "A PC-Android sync tool
-Usage: $0 [-h] [-p PATH] [-P] [i]
+Usage: $0 [-h] [-p PATH] [-P] [-d]
   -h				Show this screen
   -p PATH			Specify a paths file (default: $PATHS_PATH)
   -P				Preserve existing files
-  -i				Interactive mode"
+  -d				Demo mode (no changes)"
 }
 
 # Make sure we have everything we need to run
@@ -45,7 +45,7 @@ assert_device_connected() {
 
 # Parse arguments passed to us and set relevant variables
 parse_options() {
-	while getopts ":hp:Pi" opt
+	while getopts ":hp:Pd" opt
 	do
 		case "$opt" in
 		h)
@@ -58,8 +58,8 @@ parse_options() {
 		P)
 			PRESERVE=true
 			;;
-		i)
-			INTERACTIVE=true
+		d)
+			DEMO=true
 			;;
 		*)
 			usage
@@ -93,18 +93,10 @@ assert_paths() {
 	fi
 }
 
-# Return "false" if the user declines to proceed
-manual_confirm() {
-	[[ -z "$INTERACTIVE" ]] && return
-
-	read -r -p "Proceed? [Y/n] " proceed
-	proceed="${proceed,,}"
-
-	[[ "$proceed" == "n" ]] && echo false
-}
-
 # Sync path from PC to Android
 sync_pc_to_android() {
+	[[ -n "$DEMO" ]] && return
+
 	local path_pc
 	local path_android
 	local mtime
@@ -119,6 +111,8 @@ sync_pc_to_android() {
 
 # Sync path from Android to PC
 sync_android_to_pc() {
+	[[ -n "$DEMO" ]] && return
+
 	local path_pc
 	local path_android
 	local mtime
@@ -171,12 +165,10 @@ process_paths() {
 		if [[ "$mtime_pc" -gt "$mtime_android" ]]
 		then
 			log "PC -> Android"
-			[[ "$(manual_confirm)" == "false" ]] && continue
 			sync_pc_to_android "$path_pc" "$path_android" "$mtime_pc"
 		elif [[ "$mtime_android" -gt "$mtime_pc" ]]
 		then
 			log "Android -> PC"
-			[[ "$(manual_confirm)" == "false" ]] && continue
 			sync_android_to_pc "$path_android" "$path_pc" "$mtime_android"
 		else
 			log "Already up-to-date"
