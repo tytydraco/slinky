@@ -19,7 +19,9 @@ Usage: $0 [-d] [-h] [-p PATH] [-P]
   -d				Demo mode (no changes)
   -h				Show this screen
   -p PATH			Specify a paths file (default: $PATHS_PATH)
-  -P				Preserve existing files"
+  -P				Preserve existing files
+  -1				Force push PC -> Android
+  -2				Force push Android -> PC"
 }
 
 # Make sure we have everything we need to run
@@ -45,7 +47,7 @@ assert_device_connected() {
 
 # Parse arguments passed to us and set relevant variables
 parse_options() {
-	while getopts ":dhp:P" opt
+	while getopts ":dhp:P12" opt
 	do
 		case "$opt" in
 		d)
@@ -60,6 +62,12 @@ parse_options() {
 			;;
 		P)
 			PRESERVE=true
+			;;
+		1)
+			FORCE_PC_ANDROID=true
+			;;
+		2)
+			FORCE_ANDROID_PC=true
 			;;
 		*)
 			usage
@@ -95,6 +103,7 @@ assert_paths() {
 
 # Sync path from PC to Android
 sync_pc_to_android() {
+	log "PC -> Android"
 	[[ -n "$DEMO" ]] && return
 
 	local path_pc
@@ -109,6 +118,7 @@ sync_pc_to_android() {
 
 # Sync path from Android to PC
 sync_android_to_pc() {
+	log "Android -> PC"
 	[[ -n "$DEMO" ]] && return
 
 	local path_pc
@@ -144,6 +154,17 @@ process_paths() {
 			continue
 		fi
 
+		# Process force commands
+		if [[ -n "$FORCE_PC_ANDROID" ]]
+		then
+			sync_pc_to_android
+			continue
+		elif [[ -n "$FORCE_ANDROID_PC" ]]
+		then
+			sync_android_to_pc
+			continue
+		fi
+
 		# Confirm file contents
 		sha1_pc="$(find "$path_pc" -type f -print0 | sort -z | xargs -0 sha1sum | awk '{print $1}' | sha1sum | awk '{print $1}')"
 		sha1_android="$(adb shell "find $path_android -type f -print0 | sort -z | xargs -0 sha1sum | awk '{print \$1}' | sha1sum | awk '{print \$1}'")"
@@ -160,11 +181,9 @@ process_paths() {
 		# Compare last modify times
 		if [[ "$mtime_pc" -gt "$mtime_android" ]]
 		then
-			log "PC -> Android"
 			sync_pc_to_android "$path_pc" "$path_android"
 		elif [[ "$mtime_android" -gt "$mtime_pc" ]]
 		then
-			log "Android -> PC"
 			sync_android_to_pc "$path_android" "$path_pc"
 		else
 			log "Already up-to-date"
