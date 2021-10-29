@@ -157,11 +157,11 @@ process_paths() {
 		# Process force commands
 		if [[ -n "$FORCE_PC_ANDROID" ]]
 		then
-			sync_pc_to_android
+			sync_pc_to_android "$path_pc" "$path_android"
 			continue
 		elif [[ -n "$FORCE_ANDROID_PC" ]]
 		then
-			sync_android_to_pc
+			sync_android_to_pc "$path_android" "$path_pc"
 			continue
 		fi
 
