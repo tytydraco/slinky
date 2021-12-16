@@ -154,10 +154,17 @@ process_paths() {
 			continue
 		fi
 
-		# Assert path existence
-		if [[ -e "$path_pc" ]]
+		# Assert PC path existence
+		if [[ ! -e "$path_pc" ]]
 		then
-			err "Directory does not exist"
+			err "PC directory does not exist"
+			continue
+		fi
+
+		# Assert Android path existence
+		if adb shell "[[ ! -e $path_android ]]"
+		then
+			err "Android directory does not exist"
 			continue
 		fi
 
