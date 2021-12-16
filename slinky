@@ -142,7 +142,7 @@ process_paths() {
 		local sha1_pc
 		local sha1_android
 
-		echo -e "--- $path"
+		echo "--- $path"
 
 		path_pc="$(echo "$path" | awk -F "$PATHS_SEPARATOR" '{print $1}')"
 		path_android="$(echo "$path" | awk -F "$PATHS_SEPARATOR" '{print $2}')"
@@ -151,6 +151,13 @@ process_paths() {
  		if [[ -z "$path_pc" ]] || [[ -z "$path_android" ]]
 		then
 			err "Entry invaid"
+			continue
+		fi
+
+		# Assert path existence
+		if [[ -e "$path_pc" ]]
+		then
+			err "Directory does not exist"
 			continue
 		fi
 
