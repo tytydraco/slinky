@@ -206,6 +206,7 @@ process_paths() {
 }
 
 parse_options "$@"
+assert_dependencies
 assert_paths_exist
 prepare_paths
 assert_paths
